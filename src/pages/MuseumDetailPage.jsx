@@ -1,4 +1,4 @@
-// src/pages/MuseumDetailPage.jsx 
+// src/pages/MuseumDetailPage.jsx - STYLE MUSÉE AVEC MINIATURE ET BADGES QR
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, MapPin, Calendar, Info, Youtube, Music, Award, Sparkles } from 'lucide-react';
@@ -227,7 +227,7 @@ const MuseumDetailPage = () => {
         )}
 
         {/* QR Exclusive Badge */}
-        {artwork.accessibility === 'qr' && (
+        {artwork.accessibility === 'qr-only' && (
           <div className="absolute top-16 right-4 z-10">
             <div className="bg-gradient-to-r from-[#C4A96A] to-[#A85C32] px-4 py-2 rounded-lg shadow-xl border-2 border-[#1a1a1a]/20 backdrop-blur-sm">
               <div className="flex items-center gap-2">
@@ -431,7 +431,7 @@ const MuseumDetailPage = () => {
               </div>
 
               {/* QR Exclusive Notice */}
-              {artwork.accessibility === 'qr' && (
+              {artwork.accessibility === 'qr-only' && (
                 <div className="bg-gradient-to-br from-[#C4A96A] to-[#A85C32] rounded-lg p-5 border-2 border-[#1a1a1a]/20 shadow-xl">
                   <div className="flex items-center justify-center gap-2 mb-3">
                     <Sparkles className="h-6 w-6 text-[#1a1a1a]" />
