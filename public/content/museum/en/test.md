@@ -8,7 +8,8 @@ featuredImage:
 category: Others
 excerpt: testtesttesttesttestvvvvtestvvvvtesttesttesttesttesttesttesttestvvvvtestvvvvtesttesttest
 order: auto
-accessibility: public
+accessibility: qr-only
+qrCode: ""
 published: true
 featured: false
 datePublished: 2025-12-23T05:18:16.048Z
