@@ -1,9 +1,9 @@
-// src/pages/MuseumPage.jsx - VERSION AVEC URLs CORRECTES
+// src/pages/MuseumPage.jsx - VERSION SANS SLIDER NI STATS
 import { useState, useEffect } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
-import { Building2, Filter, MessageCircle, Award, Sparkles, MapPin, Calendar, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Building2, Filter, MessageCircle, Award, Sparkles, Calendar, Eye } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { getArtworksByCategory } from '../utils/contentLoader';
+import { getPublicMuseumArtworks } from '../utils/contentLoader';
 import SEOHelmet from '../components/SEOHelmet';
 
 const MuseumPage = () => {
@@ -55,11 +55,17 @@ const MuseumPage = () => {
   const loadArtworks = async () => {
     setLoading(true);
     try {
-      const loadedArtworks = await getArtworksByCategory(
-        selectedCategory === 'All' ? null : selectedCategory, 
-        language
-      );
-      setArtworks(loadedArtworks);
+      console.log('🔍 Loading PUBLIC artworks for:', language, 'category:', selectedCategory);
+      
+      const loadedArtworks = await getPublicMuseumArtworks(language);
+      
+      // Filtrer par catégorie si nécessaire
+      const filteredArtworks = selectedCategory === 'All' 
+        ? loadedArtworks
+        : loadedArtworks.filter(artwork => artwork.category === selectedCategory);
+      
+      console.log('✅ Public artworks loaded:', filteredArtworks.length);
+      setArtworks(filteredArtworks);
     } catch (error) {
       console.error('Error loading artworks:', error);
       setArtworks([]);
@@ -78,9 +84,6 @@ const MuseumPage = () => {
     const url = `https://wa.me/${phoneNumber}?text=${message}`;
     window.open(url, '_blank');
   };
-
-  const featuredArtworks = artworks.filter(art => art.featured);
-  const regularArtworks = artworks.filter(art => !art.featured);
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] via-[#2D5A4A] to-[#1a1a1a]">
@@ -98,7 +101,7 @@ const MuseumPage = () => {
       
       <div className="pt-20 md:pt-20">
         
-        {/* Header Banner - COMPACT */}
+        {/* Header Banner */}
         <div className="bg-gradient-to-r from-[#C4A96A] via-[#A85C32] to-[#C4A96A] py-2 shadow-lg sticky top-0 z-10">
           <div className="max-w-7xl mx-auto px-3 sm:px-4 flex items-center justify-center gap-2 py-1">
             <Award className="h-4 w-4 text-[#1a1a1a] animate-pulse" />
@@ -109,7 +112,7 @@ const MuseumPage = () => {
           </div>
         </div>
         
-        {/* Hero Section - COMPACT */}
+        {/* Hero Section */}
         <section className="py-8 md:py-12">
           <div className="max-w-7xl mx-auto px-4 text-center">
             <div className="inline-block p-3 bg-[#C4A96A]/10 backdrop-blur-sm rounded-full mb-4 border-2 border-[#C4A96A]/30">
@@ -126,41 +129,26 @@ const MuseumPage = () => {
           </div>
         </section>
 
-        {/* Intro Section - COMPACT */}
+        {/* Intro Section */}
         <section className="max-w-5xl mx-auto px-4 py-6 md:py-8">
           <div className="relative bg-gradient-to-br from-[#2D5A4A] to-[#1a1a1a] p-6 rounded-xl shadow-2xl border-4 border-[#C4A96A]">
             <div className="space-y-4 text-center">
               <p className="text-sm md:text-base text-gray-200 leading-relaxed">
                 {t.museum.intro1}
               </p>
-
               <div className="w-16 h-1 bg-gradient-to-r from-transparent via-[#C4A96A] to-transparent mx-auto"></div>
-
               <p className="text-sm md:text-base text-gray-200 leading-relaxed">
                 {t.museum.intro2}
               </p>
-
               <div className="w-16 h-1 bg-gradient-to-r from-transparent via-[#C4A96A] to-transparent mx-auto"></div>
-
               <p className="text-sm md:text-base text-gray-200 leading-relaxed">
                 {t.museum.intro3}
               </p>
             </div>
           </div>
         </section>
-
-
-
-        {/* SLIDER avec URLs correctes */}
-        {!loading && featuredArtworks.length > 0 && (
-          <ImprovedMuseumSlider 
-            articles={featuredArtworks}
-            language={language}
-            categoryColors={categoryColors}
-          />
-        )}
         
-        {/* COLLECTION COMPLÈTE */}
+        {/* Complete Collection */}
         {!loading && artworks.length > 0 && (
           <section className="max-w-7xl mx-auto px-3 sm:px-4 pb-12 md:pb-20">
             <div className="mb-8 md:mb-12">
@@ -225,7 +213,7 @@ const MuseumPage = () => {
                 </div>
               </div>
 
-              {/* GRID avec URLs correctes */}
+              {/* Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {artworks.map((artwork) => (
                   <ArtworkMuseumCard 
@@ -298,204 +286,7 @@ const MuseumPage = () => {
   );
 };
 
-// ✅ SLIDER avec URLs correctes
-const ImprovedMuseumSlider = ({ articles, language, categoryColors }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  const nextSlide = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    setCurrentIndex((prev) => (prev + 1) % articles.length);
-    setTimeout(() => setIsAnimating(false), 500);
-  };
-
-  const prevSlide = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    setCurrentIndex((prev) => (prev - 1 + articles.length) % articles.length);
-    setTimeout(() => setIsAnimating(false), 500);
-  };
-
-  const goToSlide = (index) => {
-    if (isAnimating || index === currentIndex) return;
-    setIsAnimating(true);
-    setCurrentIndex(index);
-    setTimeout(() => setIsAnimating(false), 500);
-  };
-
-  const currentArticle = articles[currentIndex];
-  const categoryGradient = categoryColors[currentArticle.category] || 'from-gray-900 to-gray-700';
-
-  return (
-    <div className="w-full py-8 md:py-12">
-      <div className="bg-gradient-to-r from-[#C4A96A] via-[#A85C32] to-[#C4A96A] py-2 mb-8">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-center gap-2">
-          <Award className="h-4 w-4 text-[#1a1a1a] animate-pulse" />
-          <span className="text-xs font-bold text-[#1a1a1a] tracking-widest uppercase">
-            {language === 'en' ? 'Featured Highlights' : 'Piezas Destacadas'}
-          </span>
-          <Sparkles className="h-4 w-4 text-[#1a1a1a] animate-pulse" />
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="relative bg-gradient-to-br from-[#2D5A4A] to-[#1a1a1a] rounded-xl border-4 border-[#C4A96A] overflow-hidden" style={{ maxHeight: '70vh' }}>
-          
-          {/* Mobile Layout */}
-          <div className="md:hidden flex flex-col" style={{ height: '70vh' }}>
-            <div className="relative h-1/2">
-              <img 
-                src={currentArticle.image || currentArticle.featuredImage?.src}
-                alt={currentArticle.featuredImage?.alt || currentArticle.title}
-                className="w-full h-full object-cover" 
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-              
-              <div className="absolute top-2 left-2">
-                <div className={`bg-gradient-to-r ${categoryGradient} px-3 py-1 rounded text-xs font-bold text-white`}>
-                  {currentArticle.category}
-                </div>
-              </div>
-
-              <div className="absolute bottom-2 right-2 flex gap-2">
-                <button onClick={prevSlide} className="w-8 h-8 rounded-full bg-[#1a1a1a]/80 border border-[#C4A96A] text-[#C4A96A] flex items-center justify-center">
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <button onClick={nextSlide} className="w-8 h-8 rounded-full bg-[#1a1a1a]/80 border border-[#C4A96A] text-[#C4A96A] flex items-center justify-center">
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className="h-1/2 overflow-y-auto p-4">
-              <div className="min-h-full flex flex-col">
-                <h2 className="text-xl font-bold text-[#C4A96A] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
-                  {currentArticle.title}
-                </h2>
-
-                <p className="text-sm text-gray-300 mb-3 flex-grow line-clamp-3">
-                  {currentArticle.excerpt || currentArticle.body?.substring(0, 150) || ''}
-                </p>
-
-                <div className="space-y-2 text-xs text-gray-300 mb-3">
-                  {currentArticle.artist && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-1 h-1 rounded-full bg-[#C4A96A]"></div>
-                      <span className="italic truncate">{currentArticle.artist}</span>
-                    </div>
-                  )}
-                  {currentArticle.year && (
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-3 w-3 text-[#C4A96A]" />
-                      <span>{currentArticle.year}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* ✅ FIX: Ajout du préfixe langue */}
-                <Link 
-                  to={`/${language}/museum/${currentArticle.slug}`}
-                  className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#C4A96A] to-[#A85C32] text-[#1a1a1a] px-4 py-2 rounded-lg font-bold text-sm mb-2"
-                >
-                  <Eye className="h-4 w-4" />
-                  {language === 'en' ? 'View Details' : 'Ver Detalles'}
-                </Link>
-
-                <div className="text-[#C4A96A] font-bold text-center text-sm">
-                  {currentIndex + 1} / {articles.length}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Desktop Layout */}
-          <div className="hidden md:grid grid-cols-2 gap-6 p-6" style={{ height: '70vh' }}>
-            <div className="overflow-y-auto pr-4 flex flex-col">
-
-              <h2 className="text-3xl md:text-4xl font-bold text-[#C4A96A] mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
-                {currentArticle.title}
-              </h2>
-
-              <p className="text-gray-300 leading-relaxed mb-6 flex-grow">
-                {currentArticle.excerpt || currentArticle.body?.substring(0, 300) || ''}
-              </p>
-
-              <div className="space-y-2 text-sm text-gray-300 mb-6 pt-4 border-t border-[#C4A96A]/20">
-                {currentArticle.artist && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-[#C4A96A]"></div>
-                    <span className="italic">{currentArticle.artist}</span>
-                  </div>
-                )}
-                {currentArticle.year && (
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-[#C4A96A]" />
-                    <span>{currentArticle.year}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center gap-4 mt-auto">
-                {/* ✅ FIX: Ajout du préfixe langue */}
-                <Link 
-                  to={`/${language}/museum/${currentArticle.slug}`}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-[#C4A96A] to-[#A85C32] text-[#1a1a1a] px-6 py-3 rounded-lg font-bold"
-                >
-                  <Eye className="h-5 w-5" />
-                  {language === 'en' ? 'View Details' : 'Ver Detalles'}
-                </Link>
-
-                <div className="flex items-center gap-3">
-                  <button onClick={prevSlide} className="w-12 h-12 rounded-full border-2 border-[#C4A96A]/30 bg-[#1a1a1a] hover:bg-[#2D5A4A] text-[#C4A96A] flex items-center justify-center">
-                    <ChevronLeft className="h-5 w-5" />
-                  </button>
-                  <div className="text-[#C4A96A] font-bold min-w-[60px] text-center">
-                    {currentIndex + 1} / {articles.length}
-                  </div>
-                  <button onClick={nextSlide} className="w-12 h-12 rounded-full border-2 border-[#C4A96A]/30 bg-[#1a1a1a] hover:bg-[#2D5A4A] text-[#C4A96A] flex items-center justify-center">
-                    <ChevronRight className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col" style={{ height: 'calc(70vh - 3rem)' }}>
-              <div className="relative flex-1 bg-[#1a1a1a] rounded-xl overflow-hidden border-2 border-[#C4A96A]">
-                <img
-                  src={currentArticle.image || currentArticle.featuredImage?.src}
-                  alt={currentArticle.featuredImage?.alt || currentArticle.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-              </div>
-
-              <div className="flex gap-2 mt-3 justify-center">
-                {articles.map((artwork, index) => (
-                  <button
-                    key={artwork.slug}
-                    onClick={() => goToSlide(index)}
-                    className={`w-16 h-20 rounded overflow-hidden border-2 transition-all ${
-                      index === currentIndex ? 'border-[#C4A96A] scale-110' : 'border-[#C4A96A]/30 opacity-60'
-                    }`}
-                  >
-                    <img 
-                      src={artwork.image || artwork.featuredImage?.src} 
-                      alt="" 
-                      className="w-full h-full object-cover" 
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ✅ CARD avec URL correcte
+// Composant Card pour les œuvres
 const ArtworkMuseumCard = ({ artwork, language, categoryColors, featured = false }) => {
   const [imageError, setImageError] = useState(false);
 
@@ -506,7 +297,6 @@ const ArtworkMuseumCard = ({ artwork, language, categoryColors, featured = false
   const categoryGradient = categoryColors[artwork.category] || 'from-gray-900 to-gray-700';
 
   return (
-    // ✅ FIX: Ajout du préfixe langue dans le Link
     <Link 
       to={`/${language}/museum/${artwork.slug}`}
       className="group block h-full"
@@ -522,7 +312,6 @@ const ArtworkMuseumCard = ({ artwork, language, categoryColors, featured = false
           </div>
         )}
 
-        {/* Image - HAUTEUR FIXE */}
         <div className="relative aspect-[4/3] bg-black overflow-hidden border-b-2 border-[#C4A96A]">
           {!imageError ? (
             <img 
@@ -547,7 +336,6 @@ const ArtworkMuseumCard = ({ artwork, language, categoryColors, featured = false
           </div>
         </div>
         
-        {/* Content - HAUTEUR FIXE */}
         <div className="flex-1 flex flex-col bg-gradient-to-br from-[#2D5A4A] to-[#1a1a1a] p-4">
           <h3 
             className="text-lg font-bold text-[#C4A96A] mb-2 line-clamp-2 min-h-[3.5rem] group-hover:text-[#A85C32] transition-colors"
@@ -556,7 +344,6 @@ const ArtworkMuseumCard = ({ artwork, language, categoryColors, featured = false
             {artwork.title}
           </h3>
           
-          {/* Info - HAUTEUR FIXE */}
           <div className="space-y-1 text-xs text-gray-300 min-h-[3rem]">
             {artwork.artist && (
               <div className="flex items-center gap-2">
